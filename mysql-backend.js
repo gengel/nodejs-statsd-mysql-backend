@@ -10,7 +10,7 @@
 var _mysql = require('mysql'),
     util = require('util'),
     fs = require('fs'),
-    sequence = require('sequence').Sequence().create();
+    sequence = require('sequence').Sequence.create();
 
 var STATSD_PACKETS_RECEIVED = "statsd.packets_received";
 var STATSD_BAD_LINES = "statsd.bad_lines_seen";
@@ -21,11 +21,11 @@ var STATSD_BAD_LINES = "statsd.bad_lines_seen";
  *
  * Example config :
  *
-  mysql: { 
-   host: "localhost", 
-   port: 3306, 
-   user: "root", 
-   password: "root", 
+  mysql: {
+   host: "localhost",
+   port: 3306,
+   user: "root",
+   password: "root",
    database: "statsd_db",
    tables: ["statsd_users", "statsd_statistics"]
   }
@@ -44,7 +44,7 @@ function StatdMySQLBackend(startupTime, config, emitter) {
     sets: []
   };
 
-  // Verifying that the config file contains enough information for this backend to work  
+  // Verifying that the config file contains enough information for this backend to work
   if(!this.config.host || !this.config.database || !this.config.user || !this.config.password) {
     console.log("You need to specify at least host, port, database, user and password for this mysql backend");
     process.exit(-1);
@@ -77,7 +77,7 @@ function StatdMySQLBackend(startupTime, config, emitter) {
       sets: ["engines/setsEngine.js"]
     };
   }
-  
+
   // Synchronous sequence
   sequence.then(function( next ) {
 
@@ -111,7 +111,7 @@ function StatdMySQLBackend(startupTime, config, emitter) {
 
     console.log("Statsd MySQL backend is loaded.");
   });
- 
+
 }
 
 
@@ -238,7 +238,7 @@ StatdMySQLBackend.prototype.checkDatabase = function(callback) {
  */
 StatdMySQLBackend.prototype.checkIfTablesExists = function(type_index, tables_names, size, startIndex, callback) {
   var self = this;
-  
+
   self.sqlConnection.query('show tables like "'+tables_names[startIndex]+'";', function(err, results, fields) {
     if(err) {
       callback(err);
@@ -258,14 +258,14 @@ StatdMySQLBackend.prototype.checkIfTablesExists = function(type_index, tables_na
         if(startIndex == size - 1) {
           // If all tables were created for this type, call the callback method
           callback(type_index);
-        } 
+        }
         else {
           // Else iterate on the next table to create
           self.checkIfTablesExists(type_index, tables_names, size, startIndex+1, callback);
         }
       });
 
-    } 
+    }
 
     // If table was found in database
     else {
@@ -274,7 +274,7 @@ StatdMySQLBackend.prototype.checkIfTablesExists = function(type_index, tables_na
       if(startIndex == size-1){
         // If all tables were created for this type, call the callback method
         callback(type_index);
-      } 
+      }
       else {
         // Else iterate on the next table to create
         self.checkIfTablesExists(type_index, tables_names, size, startIndex+1, callback)
@@ -321,11 +321,11 @@ StatdMySQLBackend.prototype.createTable = function(table_name, callback) {
       if(err) {
         console.log("Unable to execute query: '" + query +"' for table '"+table_name+"' !");
         callback(err);
-      } 
+      }
       console.log("Table '" + table_name +"' was created with success.");
       callback();
     });
-    
+
   });
 }
 
@@ -341,7 +341,7 @@ StatdMySQLBackend.prototype.onFlush = function(time_stamp, metrics) {
   var self = this;
 
   var counters = metrics['counters'];
-  var timers = metrics['timers'];  
+  var timers = metrics['timers'];
   var gauges = metrics['gauges'];
   var sets = metrics['sets'];
   var pctThreshold = metrics['pctThreshold'];
@@ -353,10 +353,10 @@ StatdMySQLBackend.prototype.onFlush = function(time_stamp, metrics) {
 
   // Handle statsd gauges
   self.handleGauges(gauges,time_stamp);
-  
+
   // Handle statsd timers
   self.handleTimers(timers,time_stamp);
-  
+
   // Handle stastd sets
   self.handleSets(sets,time_stamp);
 
@@ -365,13 +365,13 @@ StatdMySQLBackend.prototype.onFlush = function(time_stamp, metrics) {
 
 
 /**
- * Handle and process received counters 
- * 
+ * Handle and process received counters
+ *
  * @param _counters received counters
- * @param time_stamp flush time_stamp 
+ * @param time_stamp flush time_stamp
  */
 StatdMySQLBackend.prototype.handleCounters = function(_counters, time_stamp) {
-  
+
   var self = this;
 
   var packets_received = parseInt(_counters[STATSD_PACKETS_RECEIVED]);
@@ -382,7 +382,7 @@ StatdMySQLBackend.prototype.handleCounters = function(_counters, time_stamp) {
     var userCounters = self.getUserCounters(_counters);
     var userCountersSize = 0;
     for(var userCounterName in userCounters) { userCountersSize++; }
-   
+
     if(userCountersSize > 0) {
       console.log("Counters received !");
 
@@ -428,14 +428,14 @@ StatdMySQLBackend.prototype.handleCounters = function(_counters, time_stamp) {
 
 
 /**
- * Handle and process received gauges 
- * 
+ * Handle and process received gauges
+ *
  * @param _gauges received _gauges
- * @param time_stamp flush time_stamp 
+ * @param time_stamp flush time_stamp
  */
 StatdMySQLBackend.prototype.handleGauges = function(_gauges, time_stamp) {
   var self = this;
-  
+
   var gaugesSize = 0
   for(var g in _gauges) { gaugesSize++; }
 
@@ -483,14 +483,14 @@ StatdMySQLBackend.prototype.handleGauges = function(_gauges, time_stamp) {
 
 
 /**
- * Handle and process received timers 
- * 
+ * Handle and process received timers
+ *
  * @param _timers received timers
- * @param time_stamp flush time_stamp 
+ * @param time_stamp flush time_stamp
  */
 StatdMySQLBackend.prototype.handleTimers = function(_timers, time_stamp) {
   var self = this;
-  
+
   var timersSize = 0
   for(var t in _timers) { timersSize++; }
 
@@ -537,14 +537,14 @@ StatdMySQLBackend.prototype.handleTimers = function(_timers, time_stamp) {
 }
 
 /**
- * Handle and process received sets 
- * 
+ * Handle and process received sets
+ *
  * @param _sets received sets
- * @param time_stamp flush time_stamp 
+ * @param time_stamp flush time_stamp
  */
 StatdMySQLBackend.prototype.handleSets = function(_sets, time_stamp) {
   var self = this;
-  
+
   var setsSize = 0
   for(var s in _sets) { setsSize++; }
 
@@ -592,12 +592,12 @@ StatdMySQLBackend.prototype.handleSets = function(_sets, time_stamp) {
 
 
 /**
- * MISSING DOCUMENTATION 
- * 
+ * MISSING DOCUMENTATION
+ *
  * @param sqlQuerries
  */
 StatdMySQLBackend.prototype.executeQuerries = function(sqlQuerries) {
-  
+
   var self = this;
 
   for(var i = 0 ; i < sqlQuerries.length ; i++){
@@ -608,9 +608,9 @@ StatdMySQLBackend.prototype.executeQuerries = function(sqlQuerries) {
       }
       else {
         //TODO : add better error handling code
-        console.log(" -> Query [ERROR]" + err.code); 
+        console.log(" -> Query [ERROR]" + err.code);
       }
-    });  
+    });
   }
 
 }
